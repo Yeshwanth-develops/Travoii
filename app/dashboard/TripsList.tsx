@@ -103,7 +103,7 @@ export default function TripsList({
 
     try {
       const res = await fetch("/api/trip/update", {
-        method: "PATCH",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },

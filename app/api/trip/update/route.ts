@@ -6,6 +6,14 @@ import Trip from "@/models/Trip";
 import mongoose from "mongoose";
 
 export async function PATCH(req: NextRequest) {
+  return updateTrip(req);
+}
+
+export async function POST(req: NextRequest) {
+  return updateTrip(req);
+}
+
+async function updateTrip(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
