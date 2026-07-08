@@ -99,18 +99,16 @@ npm install
 Create a `.env.local` file in the root directory:
 ```env
 # Database
-MONGODB_URI=mongodb://username:password@shard1,shard2,shard3/?ssl=true&replicaSet=atlas-replica-shard-0&authSource=admin
+MONGODB_URI=
 
 # NextAuth config
-NEXTAUTH_SECRET=your_nextauth_jwt_secret
+NEXTAUTH_SECRET=
 NEXTAUTH_URL=http://localhost:3000
 
 # AI Provider Keys
 GEMINI_API_KEY=your_gemini_api_key_studio
 OPENAI_API_KEY=your_openai_api_key
 ```
-> [!NOTE]  
-> If you have a local network DNS resolver issue (like JioFiber) causing `querySrv ECONNREFUSED` errors, use the standard `mongodb://` replica set connection string format instead of `mongodb+srv://`.
 
 ### 4️⃣ Run the project
 ```bash
