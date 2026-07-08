@@ -48,8 +48,8 @@ export async function POST(req: Request) {
 
     return new Response(JSON.stringify(trip), { status: 201 });
 
-  } catch (err: any) {
+  } catch (err) {
     console.error("🔥 ERROR:", err);
-    return new Response(err.message, { status: 500 });
+    return new Response(err instanceof Error ? err.message : "Error creating trip", { status: 500 });
   }
 }

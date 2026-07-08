@@ -32,6 +32,24 @@ export async function GET() {
             { "members.userEmail": session.user.email }
           ]
         }
+      },
+      {
+        $lookup: {
+          from: "itineraries",
+          localField: "_id",
+          foreignField: "tripId",
+          as: "itineraries"
+        }
+      },
+      {
+        $addFields: {
+          hasItinerary: { $gt: [{ $size: "$itineraries" }, 0] }
+        }
+      },
+      {
+        $project: {
+          itineraries: 0
+        }
       }
     ]);
 

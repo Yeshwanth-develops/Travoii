@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     const members = await Member.find({ tripId });
 
     return new Response(JSON.stringify(members), { status: 200 });
-  } catch (err) {
+  } catch {
     return new Response("Error fetching members", { status: 500 });
   }
 }

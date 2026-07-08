@@ -2,23 +2,39 @@
 
 import { useEffect, useState } from "react";
 
-export default function ItineraryBox({ tripId }: any) {
-  const [itinerary, setItinerary] = useState<any>(null);
+interface ActivityDay {
+  day: number;
+  activities: string[];
+  estimatedCost: number;
+}
 
-  const fetchItinerary = async () => {
-    const res = await fetch("/api/trip/get-itinerary", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ tripId }),
-    });
+interface Itinerary {
+  _id: string;
+  tripId: string;
+  days: ActivityDay[];
+}
 
-    const data = await res.json();
-    setItinerary(data);
-  };
+interface ItineraryBoxProps {
+  tripId: string;
+}
+
+export default function ItineraryBox({ tripId }: ItineraryBoxProps) {
+  const [itinerary, setItinerary] = useState<Itinerary | null>(null);
 
   useEffect(() => {
+    const fetchItinerary = async () => {
+      const res = await fetch("/api/trip/get-itinerary", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ tripId }),
+      });
+
+      const data = await res.json();
+      setItinerary(data);
+    };
+
     fetchItinerary();
   }, [tripId]);
 
@@ -28,7 +44,7 @@ export default function ItineraryBox({ tripId }: any) {
     <div className="mt-4 bg-gray-50 p-4 rounded-xl">
       <h4 className="font-semibold mb-2">Itinerary</h4>
 
-      {itinerary.days.map((day: any) => (
+      {itinerary.days.map((day) => (
         <div key={day.day} className="mb-3">
           <h5 className="font-medium">Day {day.day}</h5>
 

@@ -12,7 +12,6 @@ export default async function TripsPage() {
     redirect("/login");
   }
 
-  const userName = session.user?.name?.split(" ")[0] || "Traveler";
 
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-100">

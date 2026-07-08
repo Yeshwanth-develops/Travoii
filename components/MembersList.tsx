@@ -1,15 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSocket } from "../lib/useSocket";
 
-export default function MembersList({ tripId }: any) {
-  const [members, setMembers] = useState<any[]>([]);
+interface MemberType {
+  _id: string;
+  userEmail: string;
+  role: string;
+}
+
+interface MembersListProps {
+  tripId: string;
+}
+
+export default function MembersList({ tripId }: MembersListProps) {
+  const [members, setMembers] = useState<MemberType[]>([]);
   const [loading, setLoading] = useState(true);
 
   const { socket, joinTrip } = useSocket();
 
-  const fetchMembers = async () => {
+  const fetchMembers = useCallback(async () => {
     try {
       const res = await fetch("/api/trip/members", {
         method: "POST",
@@ -26,12 +36,13 @@ export default function MembersList({ tripId }: any) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [tripId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchMembers();
     joinTrip(tripId);
-  }, [tripId, joinTrip]);
+  }, [tripId, joinTrip, fetchMembers]);
 
   // Listen for real-time member updates
   useEffect(() => {
@@ -47,7 +58,7 @@ export default function MembersList({ tripId }: any) {
     return () => {
       socket.off('member-invited', handleMemberInvited);
     };
-  }, [socket]);
+  }, [socket, fetchMembers]);
 
   return (
     <div className="mt-3 space-y-2">
@@ -59,7 +70,7 @@ export default function MembersList({ tripId }: any) {
         <p className="text-sm text-gray-500">No members yet</p>
       ) : (
         <div className="space-y-1">
-          {members.map((m: any) => (
+          {members.map((m) => (
             <div
               key={m._id}
               className="flex justify-between bg-gray-50 px-3 py-2 rounded-lg"

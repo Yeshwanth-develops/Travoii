@@ -1,15 +1,19 @@
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI!;
+const MONGODB_URI = process.env.MONGODB_URI;
 
-if (!MONGODB_URI) {
-  throw new Error("Please define MONGODB_URI");
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let cached = (globalThis as any).mongoose;
+
+if (!cached) {
+  cached = (globalThis as any).mongoose = { conn: null, promise: null };
 }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const cached = (globalThis as any).mongoose || { conn: null, promise: null };
-
 export async function connectDB() {
+  if (!MONGODB_URI) {
+    throw new Error("Please define MONGODB_URI");
+  }
+
   if (cached.conn) return cached.conn;
 
   if (!cached.promise) {

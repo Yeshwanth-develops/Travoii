@@ -1,6 +1,4 @@
-import { NextRequest } from 'next/server';
-
-export async function GET(req: NextRequest) {
+export async function GET() {
   // Socket.IO is initialized in the custom server (server.js)
   // This endpoint just confirms the server is running
 

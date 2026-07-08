@@ -8,7 +8,6 @@ import User from "@/models/User";
 import mongoose from "mongoose";
 import TripsList from "@/app/dashboard/TripsList";
 import { AccountMenu } from "./AccountMenu";
-import ItineraryBox from "@/components/ItineraryBox";
 
 import {
   MapPinned,

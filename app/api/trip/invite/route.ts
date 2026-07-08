@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     });
 
     return new Response(JSON.stringify(member), { status: 201 });
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     return new Response("Error inviting member", { status: 500 });
   }

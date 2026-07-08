@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { useSocket } from "../lib/useSocket";
 
-export default function InviteBox({ tripId }: any) {
+interface InviteBoxProps {
+  tripId: string;
+}
+
+export default function InviteBox({ tripId }: InviteBoxProps) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -39,7 +43,7 @@ export default function InviteBox({ tripId }: any) {
       } else {
         setMessage(data.error || "❌ Failed to invite.");
       }
-    } catch (err) {
+    } catch {
       setMessage("❌ Something went wrong.");
     }
 

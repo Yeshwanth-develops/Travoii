@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     const itinerary = await Itinerary.findOne({ tripId });
 
     return new Response(JSON.stringify(itinerary), { status: 200 });
-  } catch (err) {
+  } catch {
     return new Response(
       JSON.stringify({ error: "Error fetching itinerary" }),
       { status: 500 }

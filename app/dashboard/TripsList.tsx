@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { Archive, MapPin, Wallet, RefreshCw } from "lucide-react";
+import Link from "next/link";
 import InviteBox from "../../components/InviteBox";
 import MembersList from "../../components/MembersList";
 import ItineraryBox from "../../components/ItineraryBox";
@@ -15,6 +16,7 @@ interface Trip {
   budget: number;
   stops?: string[];
   archived?: boolean;
+  hasItinerary?: boolean;
 }
 
 interface TripsListProps {
@@ -30,7 +32,7 @@ export default function TripsList({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"active" | "archived">("active");
-  const [refreshCount, setRefreshCount] = useState(0);
+
 
   const { socket, isConnected, joinTrip } = useSocket();
 
@@ -57,6 +59,7 @@ export default function TripsList({
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadTrips();
   }, [loadTrips]);
 
@@ -87,6 +90,7 @@ export default function TripsList({
   }, [socket, loadTrips]);
 
   const [generatingTripId, setGeneratingTripId] = useState<string | null>(null);
+  const [itineraryRefreshKeys, setItineraryRefreshKeys] = useState<Record<string, number>>({});
 
   const handleArchiveToggle = async (id: string) => {
     const trip = trips.find((t) => t._id === id);
@@ -125,7 +129,7 @@ export default function TripsList({
     }
   };
 
-  const handleGenerateItinerary = async (id: string) => {
+  const handleGenerateItinerary = async (id: string, regenerate: boolean = false) => {
     setGeneratingTripId(id);
 
     try {
@@ -134,15 +138,22 @@ export default function TripsList({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ tripId: id }),
+        body: JSON.stringify({ tripId: id, regenerate }),
       });
 
       if (!res.ok) {
         const body = await res.json().catch(() => null);
-        throw new Error(body?.error || "Failed to generate itinerary.");
+        throw new Error(body?.details || body?.error || "Failed to generate itinerary.");
       }
 
-      alert("Itinerary Generated!");
+      setTrips((prev) =>
+        prev.map((t) => (t._id === id ? { ...t, hasItinerary: true } : t))
+      );
+
+      setItineraryRefreshKeys((prev) => ({
+        ...prev,
+        [id]: (prev[id] || 0) + 1,
+      }));
     } catch (error) {
       console.error("Itinerary generation failed:", error);
       setError(
@@ -281,9 +292,11 @@ export default function TripsList({
         </button>
       </div>
 
-      <h3 className="text-xl font-semibold tracking-tight text-slate-900">
-        {trip.title}
-      </h3>
+      <Link href={`/trips/${trip._id}`} className="block group">
+        <h3 className="text-xl font-semibold tracking-tight text-slate-900 group-hover:text-sky-600 transition">
+          {trip.title}
+        </h3>
+      </Link>
 
       <div className="mt-3 flex items-start gap-2 text-sm text-slate-600">
         <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-sky-500" />
@@ -317,17 +330,27 @@ export default function TripsList({
         <p className="mt-5 text-sm text-slate-500">No extra stops added yet.</p>
       )}
 
-      <button
-        onClick={() => handleGenerateItinerary(trip._id)}
-        disabled={generatingTripId === trip._id}
-        className="mt-5 rounded-xl bg-blue-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-70"
-      >
-        {generatingTripId === trip._id ? "Generating…" : "Generate Itinerary"}
-      </button>
+      {!trip.hasItinerary ? (
+        <button
+          onClick={() => handleGenerateItinerary(trip._id, false)}
+          disabled={generatingTripId === trip._id}
+          className="mt-5 rounded-xl bg-blue-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {generatingTripId === trip._id ? "Generating…" : "Generate Itinerary"}
+        </button>
+      ) : (
+        <button
+          onClick={() => handleGenerateItinerary(trip._id, true)}
+          disabled={generatingTripId === trip._id}
+          className="mt-5 rounded-xl border border-sky-300 bg-white px-3 py-2 text-sm font-semibold text-sky-700 transition hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {generatingTripId === trip._id ? "Regenerating…" : "Regenerate Itinerary"}
+        </button>
+      )}
 
       <InviteBox tripId={trip._id} />
       <MembersList tripId={trip._id} />
-      <ItineraryBox tripId={trip._id} />
+      <ItineraryBox tripId={trip._id} key={`${trip._id}-${itineraryRefreshKeys[trip._id] || 0}`} />
     </div>
   );
 
@@ -358,20 +381,34 @@ export default function TripsList({
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-900">{trip.title}</h3>
+                  <Link href={`/trips/${trip._id}`} className="block group">
+                    <h3 className="text-lg font-semibold text-slate-900 group-hover:text-sky-600 transition">
+                      {trip.title}
+                    </h3>
+                  </Link>
                   <p className="mt-1 text-sm text-slate-600">
                     {trip.startLocation} <span className="text-sky-500">→</span> {trip.endLocation}
                   </p>
                   <p className="mt-3 text-sm font-semibold text-slate-800">
                     Budget: ₹{trip.budget}
                   </p>
-                  <button
-                    onClick={() => handleGenerateItinerary(trip._id)}
-                    disabled={generatingTripId === trip._id}
-                    className="mt-4 rounded-xl bg-blue-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-70"
-                  >
-                    {generatingTripId === trip._id ? "Generating…" : "Generate Itinerary"}
-                  </button>
+                  {!trip.hasItinerary ? (
+                    <button
+                      onClick={() => handleGenerateItinerary(trip._id, false)}
+                      disabled={generatingTripId === trip._id}
+                      className="mt-4 rounded-xl bg-blue-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-70"
+                    >
+                      {generatingTripId === trip._id ? "Generating…" : "Generate Itinerary"}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleGenerateItinerary(trip._id, true)}
+                      disabled={generatingTripId === trip._id}
+                      className="mt-4 rounded-xl border border-sky-300 bg-white px-3 py-2 text-sm font-semibold text-sky-700 transition hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-70"
+                    >
+                      {generatingTripId === trip._id ? "Regenerating…" : "Regenerate Itinerary"}
+                    </button>
+                  )}
                 </div>
 
                 <button

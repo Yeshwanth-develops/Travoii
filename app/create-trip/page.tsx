@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MapPin, Plus, Search, Trash, Wallet } from "lucide-react";
+import { MapPin, Plus, Trash, Wallet } from "lucide-react";
 
 interface LocationSuggestion {
   name: string;
@@ -28,9 +28,11 @@ function LocationAutocomplete({
   const [loading, setLoading] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  const [prevValue, setPrevValue] = useState(value);
+  if (value !== prevValue) {
     setQuery(value);
-  }, [value]);
+    setPrevValue(value);
+  }
 
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
